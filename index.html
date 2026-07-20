@@ -39,6 +39,7 @@
             display: block;
             border: 4px solid #fff;
             border-radius: 10px;
+            object-fit: cover;
         }
         .line-id-text {
             font-size: 16px; 
@@ -76,14 +77,15 @@
             transition: transform 0.2s;
         }
         .product-image img:hover { transform: scale(1.05); }
-        .product-desc { margin-top: 15px; line-height: 1.6; color: #444; padding: 10px; background: #f9f9f9; border-radius: 5px; }
+        .product-desc { margin-top: 15px; line-height: 1.6; color: #444; padding: 15px; background: #f9f9f9; border-radius: 5px; border: 1px solid #eee; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>HOLA 大墩店 家具銷售專員 蔡KOBE</h1>
-        <img src="https://drive.google.com/uc?export=view&id=1TiN0ymrbT3brnIXH_vghYGFYoCeO37T5" alt="加我LINE" class="qr-code">
+        <!-- 這裡換成 Google 縮圖 API，強制把它抓出來 -->
+        <img src="https://drive.google.com/thumbnail?id=1TiN0ymrbT3brnIXH_vghYGFYoCeO37T5&sz=w500" alt="加我LINE" class="qr-code">
         <div class="line-id-text">
             若條碼無法掃描，請手動輸入 LINE ID：satanhotdog
         </div>
@@ -102,13 +104,34 @@
     <script>
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTXSo3_nA_Jx9DvmO7M1pn0kvt-FrrTEyqx8ao3N628WzcKf0dT-YT91sWTuNBg51YZNIyTDREfvt7Y/pub?output=csv';
 
+        // 終極破解版：全部強制轉成縮圖 API (sz=w800 確保畫質夠清楚)
         function fixGoogleDriveUrl(url) {
             if (!url) return '';
             const match = url.match(/\d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/) || url.match(/d\/([a-zA-Z0-9_-]+)\/view/);
             if (match && match[1]) {
-                return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+                return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800`;
             }
             return url;
+        }
+
+        function parseCSV(str) {
+            const arr = [];
+            let quote = false;
+            let row = 0, col = 0;
+            for (let c = 0; c < str.length; c++) {
+                let cc = str[c], nc = str[c+1];
+                arr[row] = arr[row] || [];
+                arr[row][col] = arr[row][col] || '';
+                
+                if (cc === '"' && quote && nc === '"') { arr[row][col] += cc; ++c; continue; }
+                if (cc === '"') { quote = !quote; continue; }
+                if (cc === ',' && !quote) { ++col; continue; }
+                if (cc === '\r' && nc === '\n' && !quote) { ++row; col = 0; ++c; continue; }
+                if (cc === '\n' && !quote) { ++row; col = 0; continue; }
+                if (cc === '\r' && !quote) { ++row; col = 0; continue; }
+                arr[row][col] += cc;
+            }
+            return arr;
         }
 
         fetch(sheetUrl)
@@ -117,17 +140,17 @@
                 const container = document.getElementById('product-container');
                 container.innerHTML = ''; 
 
-                const rows = csvText.split('\n');
+                const rows = parseCSV(csvText);
                 
                 for (let i = 1; i < rows.length; i++) {
-                    if (!rows[i].trim()) continue; 
+                    const cols = rows[i];
+                    if (!cols || cols.length < 2 || !cols[0].trim()) continue; 
                     
-                    const cols = rows[i].split(',');
                     const id = cols[0];
                     const name = cols[1];
-                    const originalPrice = cols[2];
-                    const salePrice = cols[3];
-                    const desc = cols[4];
+                    const originalPrice = cols[2] || '';
+                    const salePrice = cols[3] || '';
+                    const desc = (cols[4] || '').replace(/\n/g, '<br>');
                     
                     const imgUrls = [cols[5], cols[6], cols[7], cols[8], cols[9]]
                                     .map(url => url ? url.trim() : '')
