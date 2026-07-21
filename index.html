@@ -84,8 +84,8 @@
 
     <div class="header">
         <h1>HOLA 大墩店 家具銷售專員 蔡KOBE</h1>
-        <!-- 雙重保險：縮圖API + 無推薦人防護 -->
-        <img src="https://drive.google.com/thumbnail?id=1TiN0ymrbT3brnIXH_vghYGFYoCeO37T5&sz=w500" alt="加我LINE" class="qr-code" referrerpolicy="no-referrer">
+        <!-- LINE 條碼一樣加時間戳記防快取 -->
+        <img id="line-qr" src="" alt="加我LINE" class="qr-code" referrerpolicy="no-referrer">
         <div class="line-id-text">
             若條碼無法掃描，請手動輸入 LINE ID：satanhotdog
         </div>
@@ -102,20 +102,23 @@
     </div>
 
     <script>
-        // 你的資料庫網址
+        // 把 LINE 條碼的網址也動態塞進去，加上時間戳記
+        document.getElementById('line-qr').src = `https://drive.google.com/thumbnail?id=1TiN0ymrbT3brnIXH_vghYGFYoCeO37T5&sz=w500&dummy=${new Date().getTime()}`;
+
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTXSo3_nA_Jx9DvmO7M1pn0kvt-FrrTEyqx8ao3N628WzcKf0dT-YT91sWTuNBg51YZNIyTDREfvt7Y/pub?output=csv';
 
-        // 終極暴力網址解析器：強迫 Google 吐出寬度 1000px 的縮圖，躲過大檔案病毒掃描
+        // 終極暴力網址解析器 + 快取破壞神
         function fixGoogleDriveUrl(url) {
             if (!url) return '';
             const match = url.match(/[-\w]{25,}/);
             if (match && match[0]) {
-                return `https://drive.google.com/thumbnail?id=${match[0]}&sz=w1000`;
+                const now = new Date().getTime(); // 產生一串毫秒數字
+                // 網址最後面加上 &dummy=123456789，強迫電腦每次都重新下載圖片
+                return `https://drive.google.com/thumbnail?id=${match[0]}&sz=w1000&dummy=${now}`;
             }
             return url;
         }
 
-        // 專治換行與全半形引號的 CSV 剖析器
         function parseCSV(str) {
             const arr = [];
             let quote = false;
@@ -161,7 +164,6 @@
                     let imagesHtml = '';
                     imgUrls.forEach(url => {
                         const fixedUrl = fixGoogleDriveUrl(url);
-                        // 加入 referrerpolicy="no-referrer" 隱形斗篷
                         imagesHtml += `
                             <a href="${fixedUrl}" target="_blank" title="點擊放大檢視商品細節">
                                 <img src="${fixedUrl}" alt="${name}" referrerpolicy="no-referrer">
