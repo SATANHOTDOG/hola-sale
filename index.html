@@ -73,7 +73,7 @@
         .product-image img {
             width: 100%;
             height: 180px;
-            /* 重點在這裡：contain 讓圖片不被裁切，完整顯示 */
+            /* 溫馨無印風：object-fit: contain 確保圖片絕對不被裁切 */
             object-fit: contain;
             background-color: #f5f5f5;
             border-radius: 8px;
@@ -104,7 +104,7 @@
 
         <div class="warning-box">
             <strong style="color: #5d4037;">溫馨提醒：</strong><br>
-            此為專員個人整理之限量出清目錄。因門市現場同步展售，商品隨時可能尋得新主人。<br>
+            此為專員個人整理之限量出清目錄。因門市現場同步展售，商品可能隨時尋得新主人。<br>
             為保障您的權益，看中喜歡的商品，請務必先透過 LINE 聯繫確認保留！<br>
             <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #cfd8dc; color: #d84315; font-weight: bold; text-align: center;">
                 ※ 業績採個人制，來店請指名「家具區 蔡先生」 ※
@@ -113,14 +113,16 @@
     </div>
 
     <div id="product-container">
-        <h3 style="text-align: center; color: #a1887f;">正在為您準備出清目錄...</h3>
+        <h3 style="text-align: center; color: #a1887f;">正在為您準備溫馨出清目錄，請稍候...</h3>
     </div>
 
     <script>
         document.getElementById('line-qr').src = `https://drive.google.com/thumbnail?id=1TiN0ymrbT3brnIXH_vghYGFYoCeO37T5&sz=w500&dummy=${new Date().getTime()}`;
 
-        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTXSo3_nA_Jx9DvmO7M1pn0kvt-FrrTEyqx8ao3N628WzcKf0dT-YT91sWTuNBg51YZNIyTDREfvt7Y/pub?output=csv';
+        // ⚠️ 請把下面這行引號內的網址，換成你剛剛從 Google 試算表「發布到網路」取得的 CSV 網址！
+        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHauFXAyIkJaTrEnj2jsLq2frEYmdfI0c1p-y3OIfdScIG_9UusQ6xh6-bOhTb9r4lDc2iIQMDxoU_/pub?gid=782685781&single=true&output=csv';
 
+        // 雲端硬碟網址暴力解析器（專門對付 Google 表單上傳的照片網址）
         function fixGoogleDriveUrl(url) {
             if (!url) return '';
             const match = url.match(/[-\w]{25,}/);
@@ -159,19 +161,35 @@
 
                 const rows = parseCSV(csvText);
                 
+                // 從第 1 行開始（跳過標題列）
                 for (let i = 1; i < rows.length; i++) {
                     const cols = rows[i];
-                    if (!cols || cols.length < 2 || !cols[0].trim()) continue; 
+                    // Google 表單結構：
+                    // cols[0] = 時間戳記
+                    // cols[1] = 貨號
+                    // cols[2] = 品名
+                    // cols[3] = 原價
+                    // cols[4] = 出清價
+                    // cols[5] = 商品說明
+                    // cols[6] 開始 = 上傳的照片網址
+                    if (!cols || cols.length < 3 || !cols[1]) continue; 
                     
-                    const id = cols[0];
-                    const name = cols[1];
-                    const originalPrice = cols[2] || '';
-                    const salePrice = cols[3] || '';
-                    const desc = (cols[4] || '').replace(/\n/g, '<br>');
+                    const id = cols[1] || '';
+                    const name = cols[2] || '';
+                    const originalPrice = cols[3] || '';
+                    const salePrice = cols[4] || '';
+                    const desc = (cols[5] || '').replace(/\n/g, '<br>');
                     
-                    const imgUrls = [cols[5], cols[6], cols[7], cols[8], cols[9]]
-                                    .map(url => url ? url.trim() : '')
-                                    .filter(url => url !== '');
+                    // 自動掃描第 6 欄之後的所有照片網址（支援表單多圖上傳與逗號分隔）
+                    let imgUrls = [];
+                    for (let c = 6; c < cols.length; c++) {
+                        if (cols[c]) {
+                            cols[c].split(',').forEach(u => {
+                                const cleanU = u.trim();
+                                if (cleanU) imgUrls.push(cleanU);
+                            });
+                        }
+                    }
 
                     let imagesHtml = '';
                     imgUrls.forEach(url => {
