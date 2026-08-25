@@ -7,101 +7,113 @@
     <style>
         body {
             font-family: "Microsoft JhengHei", Arial, sans-serif;
-            background-color: #f0f2f5;
+            background-color: #faf7f2;
+            color: #4a4a4a;
             margin: 0;
             padding: 20px;
         }
         .header {
-            background-color: #1a252f;
-            color: white;
+            background-color: #8d6e63;
+            color: #fff;
             text-align: center;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            padding: 30px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(141, 110, 99, 0.2);
         }
-        .header h1 { margin: 0 0 10px 0; font-size: 26px; }
+        .header h1 { margin: 0 0 12px 0; font-size: 24px; letter-spacing: 2px; }
         .warning-box {
-            background-color: #e74c3c;
-            color: white;
-            padding: 15px;
-            font-weight: bold;
+            background-color: #fff8e1;
+            color: #8d6e63;
+            padding: 20px;
             border-radius: 8px;
-            margin: 15px 0;
-            line-height: 1.6;
+            margin: 20px 0 10px 0;
+            line-height: 1.8;
             text-align: left;
+            border: 1px solid #d7ccc8;
         }
         .qr-code {
-            width: 160px;
-            height: 160px;
+            width: 150px;
+            height: 150px;
             background-color: #fff;
-            margin: 10px auto;
+            margin: 15px auto;
             display: block;
             border: 4px solid #fff;
-            border-radius: 10px;
-            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .line-id-text {
-            font-size: 16px; 
-            color: #f1c40f; 
-            margin-top: 10px; 
-            font-weight: bold; 
+            font-size: 15px; 
+            color: #ffd54f; 
+            margin-top: 12px; 
             letter-spacing: 1px;
         }
         .product-card {
-            background: white;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            border-left: 6px solid #f39c12;
+            background: #fff;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border-top: 5px solid #d7ccc8;
         }
-        .product-title { font-size: 22px; font-weight: bold; color: #2c3e50; }
-        .product-id { color: #7f8c8d; font-size: 14px; margin-bottom: 10px; }
+        .product-title { font-size: 20px; font-weight: bold; color: #5d4037; }
+        .product-id { color: #9e9e9e; font-size: 13px; margin-bottom: 15px; margin-top: 5px; }
         .price-zone {
-            background: #fff3cd;
-            padding: 10px;
-            border-radius: 5px;
+            background: #fbe9e7;
+            padding: 15px;
+            border-radius: 8px;
             margin: 15px 0;
+            display: flex;
+            align-items: baseline;
         }
-        .original-price { text-decoration: line-through; color: #95a5a6; font-size: 16px; margin-right: 15px; }
-        .sale-price { color: #e74c3c; font-size: 24px; font-weight: bold; }
-        .product-image { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
-        .product-image a { width: calc(20% - 10px); min-width: 120px; }
+        .original-price { text-decoration: line-through; color: #a1887f; font-size: 15px; margin-right: 15px; }
+        .sale-price { color: #d84315; font-size: 24px; font-weight: bold; }
+        .product-image { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px; }
+        .product-image a { width: calc(33.333% - 8px); min-width: 100px; }
         .product-image img {
             width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-            transition: transform 0.2s;
+            height: 180px;
+            /* 重點在這裡：contain 讓圖片不被裁切，完整顯示 */
+            object-fit: contain;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            border: 1px solid #eeeeee;
+            transition: transform 0.3s ease;
         }
-        .product-image img:hover { transform: scale(1.05); }
-        .product-desc { margin-top: 15px; line-height: 1.6; color: #444; padding: 15px; background: #f9f9f9; border-radius: 5px; border: 1px solid #eee; }
+        .product-image img:hover { transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .product-desc { 
+            margin-top: 20px; 
+            line-height: 1.8; 
+            color: #6d4c41; 
+            padding: 15px; 
+            background: #fafafa; 
+            border-radius: 8px; 
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>HOLA 大墩店 家具銷售專員 蔡KOBE</h1>
-        <!-- 縮圖API + 無推薦人防護 + 時間戳記 -->
+        <h1>HOLA 居家生活 - 大墩店</h1>
+        <div style="font-size: 16px; margin-bottom: 15px; color: #d7ccc8;">家具銷售專員 蔡KOBE 為您精選</div>
+        
         <img id="line-qr" src="" alt="加我LINE" class="qr-code" referrerpolicy="no-referrer">
         <div class="line-id-text">
-            若條碼無法掃描，請手動輸入 LINE ID：satanhotdog
+            若無法掃描，請手動輸入 LINE ID：satanhotdog
         </div>
-        
+
         <div class="warning-box">
-            ⚠️ 專員重要提醒：<br>
-            此為 HOLA 大墩店 家具銷售專員 蔡KOBE 個人為您整理之限量出清商品網。<br>
-            出清品項數量極為有限，由於門市現場同步展售，商品可能隨時絕版。<br>
-            <strong>為保障您的購買權益，看中商品請務必先加 LINE 聯繫，為您確認庫存與保留！</strong><br>
-            <hr style="border: 1px dashed #fff; margin: 12px 0;">
-            <span style="font-size: 18px; color: #ffeb3b; display: block; text-align: center;">🔥 業務業績採個人業績制，來店請務必指名 業務 蔡先生 🔥</span>
+            <strong style="color: #5d4037;">溫馨提醒：</strong><br>
+            此為專員個人整理之限量出清目錄。因門市現場同步展售，商品隨時可能尋得新主人。<br>
+            為保障您的權益，看中喜歡的商品，請務必先透過 LINE 聯繫確認保留！<br>
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #cfd8dc; color: #d84315; font-weight: bold; text-align: center;">
+                ※ 業績採個人制，來店請指名「家具區 蔡先生」 ※
+            </div>
         </div>
     </div>
 
     <div id="product-container">
-        <h3 style="text-align: center; color: #666;">正在為您調閱專屬出清清單，請稍候...</h3>
+        <h3 style="text-align: center; color: #a1887f;">正在為您準備出清目錄...</h3>
     </div>
 
     <script>
@@ -165,14 +177,14 @@
                     imgUrls.forEach(url => {
                         const fixedUrl = fixGoogleDriveUrl(url);
                         imagesHtml += `
-                            <a href="${fixedUrl}" target="_blank" title="點擊放大檢視商品細節">
+                            <a href="${fixedUrl}" target="_blank" title="點擊檢視完整圖片">
                                 <img src="${fixedUrl}" alt="${name}" referrerpolicy="no-referrer">
                             </a>
                         `;
                     });
 
                     if (imagesHtml === '') {
-                        imagesHtml = '<span style="color:#999; font-style:italic;">商品實拍圖片整理中，歡迎直接傳送 LINE 訊息索取。</span>';
+                        imagesHtml = '<span style="color:#bcaaa4; font-style:italic;">實拍圖片整理中，請透過 LINE 索取。</span>';
                     }
 
                     const productHtml = `
@@ -187,7 +199,6 @@
                                 ${imagesHtml}
                             </div>
                             <div class="product-desc">
-                                <strong>商品說明：</strong><br>
                                 ${desc}
                             </div>
                         </div>
@@ -196,7 +207,7 @@
                 }
             })
             .catch(error => {
-                document.getElementById('product-container').innerHTML = '<h3 style="color:#e74c3c; text-align:center;">資料庫同步中，若未顯示商品，請直接加 LINE 詢問最新庫存。</h3>';
+                document.getElementById('product-container').innerHTML = '<h3 style="color:#d84315; text-align:center;">目錄整理中，請直接加 LINE 詢問最新庫存。</h3>';
             });
     </script>
 </body>
