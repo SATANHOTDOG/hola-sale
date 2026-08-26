@@ -48,6 +48,49 @@
             margin-top: 12px; 
             letter-spacing: 1px;
         }
+        .control-panel {
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .filter-btn {
+            background-color: #efebe9;
+            color: #5d4037;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .filter-btn:hover { background-color: #d7ccc8; }
+        .filter-btn.active {
+            background-color: #8d6e63;
+            color: #fff;
+        }
+        .sort-select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #d7ccc8;
+            background-color: #fff;
+            color: #5d4037;
+            font-size: 14px;
+            outline: none;
+            cursor: pointer;
+        }
         .product-card {
             background: #fff;
             padding: 25px;
@@ -56,7 +99,20 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.03);
             border-top: 5px solid #d7ccc8;
         }
+        .product-header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
         .product-title { font-size: 20px; font-weight: bold; color: #5d4037; }
+        .product-category-tag {
+            background-color: #efebe9;
+            color: #795548;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+        }
         .product-id { color: #9e9e9e; font-size: 13px; margin-bottom: 15px; margin-top: 5px; }
         .price-zone {
             background: #fbe9e7;
@@ -73,7 +129,6 @@
         .product-image img {
             width: 100%;
             height: 180px;
-            /* 溫馨無印風：object-fit: contain 確保圖片絕對不被裁切 */
             object-fit: contain;
             background-color: #f5f5f5;
             border-radius: 8px;
@@ -112,17 +167,34 @@
         </div>
     </div>
 
+    <div class="control-panel">
+        <div class="filter-buttons" id="filter-container">
+            <button class="filter-btn active" onclick="filterCategory('全部', this)">全部商品</button>
+            <button class="filter-btn" onclick="filterCategory('La-z-boy休閒椅', this)">La-z-boy休閒椅</button>
+            <button class="filter-btn" onclick="filterCategory('家具', this)">家具</button>
+            <button class="filter-btn" onclick="filterCategory('床墊', this)">床墊</button>
+            <button class="filter-btn" onclick="filterCategory('地毯', this)">地毯</button>
+        </div>
+        <select class="sort-select" id="sort-select" onchange="changeSort()">
+            <option value="default">預設排序</option>
+            <option value="low-high">價格：低 ➔ 高</option>
+            <option value="high-low">價格：高 ➔ 低</option>
+        </select>
+    </div>
+
     <div id="product-container">
-        <h3 style="text-align: center; color: #a1887f;">正在為您準備溫馨出清目錄，請稍候...</h3>
+        <h3 style="text-align: center; color: #a1887f;">正在為您準備精選目錄，請稍候...</h3>
     </div>
 
     <script>
         document.getElementById('line-qr').src = `https://drive.google.com/thumbnail?id=1TiN0ymrbT3brnIXH_vghYGFYoCeO37T5&sz=w500&dummy=${new Date().getTime()}`;
 
-        // ⚠️ 請把下面這行引號內的網址，換成你剛剛從 Google 試算表「發布到網路」取得的 CSV 網址！
-        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHauFXAyIkJaTrEnj2jsLq2frEYmdfI0c1p-y3OIfdScIG_9UusQ6xh6-bOhTb9r4lDc2iIQMDxoU_/pub?gid=782685781&single=true&output=csv';
+        const sheetUrl = 'https://docs.google.com/spreadsheets/d/1cgq8GMxzwaKzw3l2JMPb4pCKzCdb5ZRYGkDp0-R6lbg/export?format=csv';
 
-        // 雲端硬碟網址暴力解析器（專門對付 Google 表單上傳的照片網址）
+        let allProducts = [];
+        let currentCategory = '全部';
+        let currentSort = 'default';
+
         function fixGoogleDriveUrl(url) {
             if (!url) return '';
             const match = url.match(/[-\w]{25,}/);
@@ -153,26 +225,97 @@
             return arr;
         }
 
+        function renderProducts() {
+            const container = document.getElementById('product-container');
+            container.innerHTML = ''; 
+
+            let filtered = allProducts.filter(p => {
+                if (currentCategory === '全部') return true;
+                return p.category === currentCategory;
+            });
+
+            filtered.sort((a, b) => {
+                const priceA = parseFloat(a.salePrice.toString().replace(/[^0-9.]/g, '')) || 0;
+                const priceB = parseFloat(b.salePrice.toString().replace(/[^0-9.]/g, '')) || 0;
+                
+                if (currentSort === 'low-high') return priceA - priceB;
+                if (currentSort === 'high-low') return priceB - priceA;
+                return 0;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<h3 style="text-align: center; color: #a1887f; padding: 40px;">目前此分類尚無上架商品，請挑選其他分類。</h3>';
+                return;
+            }
+
+            filtered.forEach(p => {
+                let imagesHtml = '';
+                p.imgUrls.forEach(url => {
+                    const fixedUrl = fixGoogleDriveUrl(url);
+                    imagesHtml += `
+                        <a href="${fixedUrl}" target="_blank" title="點擊檢視完整圖片">
+                            <img src="${fixedUrl}" alt="${p.name}" referrerpolicy="no-referrer">
+                        </a>
+                    `;
+                });
+
+                if (imagesHtml === '') {
+                    imagesHtml = '<span style="color:#bcaaa4; font-style:italic;">實拍圖片整理中，請透過 LINE 索取。</span>';
+                }
+
+                const productHtml = `
+                    <div class="product-card">
+                        <div class="product-header-info">
+                            <div class="product-title">${p.name}</div>
+                            <span class="product-category-tag">${p.category || '未分類'}</span>
+                        </div>
+                        <div class="product-id">商品貨號：${p.id}</div>
+                        <div class="price-zone">
+                            <span class="original-price">原價：$${p.originalPrice}</span>
+                            <span class="sale-price">出清價：$${p.salePrice}</span>
+                        </div>
+                        <div class="product-image">
+                            ${imagesHtml}
+                        </div>
+                        <div class="product-desc">
+                            ${p.desc}
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += productHtml;
+            });
+        }
+
+        function filterCategory(category, btn) {
+            currentCategory = category;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderProducts();
+        }
+
+        function changeSort() {
+            currentSort = document.getElementById('sort-select').value;
+            renderProducts();
+        }
+
         fetch(sheetUrl)
             .then(response => response.text())
             .then(csvText => {
-                const container = document.getElementById('product-container');
-                container.innerHTML = ''; 
-
                 const rows = parseCSV(csvText);
+                allProducts = [];
                 
-                // 從第 1 行開始（跳過標題列）
                 for (let i = 1; i < rows.length; i++) {
                     const cols = rows[i];
-                    // Google 表單結構：
+                    // 配合你目前的試算表順序：
                     // cols[0] = 時間戳記
                     // cols[1] = 貨號
                     // cols[2] = 品名
                     // cols[3] = 原價
                     // cols[4] = 出清價
                     // cols[5] = 商品說明
-                    // cols[6] 開始 = 上傳的照片網址
-                    if (!cols || cols.length < 3 || !cols[1]) continue; 
+                    // cols[6] = 上傳照片
+                    // cols[7] = 商品品類 (排在最後面)
+                    if (!cols || cols.length < 2 || !cols[1]) continue; 
                     
                     const id = cols[1] || '';
                     const name = cols[2] || '';
@@ -180,49 +323,24 @@
                     const salePrice = cols[4] || '';
                     const desc = (cols[5] || '').replace(/\n/g, '<br>');
                     
-                    // 自動掃描第 6 欄之後的所有照片網址（支援表單多圖上傳與逗號分隔）
+                    // 照片網址在 cols[6]，如果有多張用逗號隔開
                     let imgUrls = [];
-                    for (let c = 6; c < cols.length; c++) {
-                        if (cols[c]) {
-                            cols[c].split(',').forEach(u => {
-                                const cleanU = u.trim();
-                                if (cleanU) imgUrls.push(cleanU);
-                            });
-                        }
+                    if (cols[6]) {
+                        cols[6].split(',').forEach(u => {
+                            const cleanU = u.trim();
+                            if (cleanU) imgUrls.push(cleanU);
+                        });
                     }
 
-                    let imagesHtml = '';
-                    imgUrls.forEach(url => {
-                        const fixedUrl = fixGoogleDriveUrl(url);
-                        imagesHtml += `
-                            <a href="${fixedUrl}" target="_blank" title="點擊檢視完整圖片">
-                                <img src="${fixedUrl}" alt="${name}" referrerpolicy="no-referrer">
-                            </a>
-                        `;
+                    // 品類在最後面的 cols[7]
+                    const category = cols[7] || '未分類';
+
+                    allProducts.push({
+                        id, name, category, originalPrice, salePrice, desc, imgUrls
                     });
-
-                    if (imagesHtml === '') {
-                        imagesHtml = '<span style="color:#bcaaa4; font-style:italic;">實拍圖片整理中，請透過 LINE 索取。</span>';
-                    }
-
-                    const productHtml = `
-                        <div class="product-card">
-                            <div class="product-title">${name}</div>
-                            <div class="product-id">商品貨號：${id}</div>
-                            <div class="price-zone">
-                                <span class="original-price">原價：$${originalPrice}</span>
-                                <span class="sale-price">出清價：$${salePrice}</span>
-                            </div>
-                            <div class="product-image">
-                                ${imagesHtml}
-                            </div>
-                            <div class="product-desc">
-                                ${desc}
-                            </div>
-                        </div>
-                    `;
-                    container.innerHTML += productHtml;
                 }
+
+                renderProducts();
             })
             .catch(error => {
                 document.getElementById('product-container').innerHTML = '<h3 style="color:#d84315; text-align:center;">目錄整理中，請直接加 LINE 詢問最新庫存。</h3>';
